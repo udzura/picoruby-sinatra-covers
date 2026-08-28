@@ -67,4 +67,18 @@ task :test do
   sh executable, File.join(PROJECT_ROOT, "test", "smoke.rb")
 end
 
+namespace :covers do
+  desc "Run the HTTP compatibility cover against CRuby Sinatra"
+  task :cruby do
+    sh "runn", "run", "--scopes", "run:exec", "--verbose",
+       File.join(PROJECT_ROOT, "covers", "runbooks", "cruby.yml")
+  end
+
+  desc "Run the HTTP compatibility cover against PicoRuby on Cloudflare Workers"
+  task :worker do
+    sh "runn", "run", "--scopes", "run:exec", "--verbose",
+       File.join(PROJECT_ROOT, "covers", "runbooks", "worker.yml")
+  end
+end
+
 task default: :test

@@ -53,3 +53,32 @@ rake test
 
 checkout の場所が異なる場合は `PICORUBY_ROOT`、`MRUBY_RACK_ROOT`、
 `MRUBY_MUSTERMANN_ROOT` を設定してください。
+
+## HTTP compatibility covers
+
+`covers/` には、同じ Sinatra application と同じ Ruby assertion を複数の
+runtime に対して実行する互換性テストを収録しています。現在は routing、
+named parameter、form parameter、response status/header、404 の最小ケースを
+対象にしています。
+
+CRuby + Sinatra 4.2.1 を基準実装として実行するには、依存を準備してから
+次を実行します。
+
+```sh
+BUNDLE_GEMFILE=covers/Gemfile bundle install
+rake covers:cruby
+```
+
+PicoRuby Worker に対して実行する場合は、あらかじめ
+`picoruby-cloudflare-worker-wasm/spike` の runtime をビルドしてください。
+その後、各 checkout の場所を指定して実行します。
+
+```sh
+PICORUBY_ROOT=/absolute/path/to/picoruby \
+PICORUBY_WORKER_ROOT=/absolute/path/to/picoruby-cloudflare-worker-wasm \
+rake covers:worker
+```
+
+どちらの runbook もserverをbackgroundで起動し、`covers/verify.rb` を実行して
+終了時にserverを停止します。互換性ケースは `covers/scenarios/` に集約し、
+runtime固有の差は `covers/backends/` とrunbookだけに閉じ込めます。

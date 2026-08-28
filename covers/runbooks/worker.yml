@@ -1,0 +1,9 @@
+desc: Cover Sinatra behavior on PicoRuby Cloudflare Workers
+steps:
+  - exec:
+      command: ruby covers/backends/worker/start.rb
+      background: true
+  - include:
+      path: verify.yml
+      vars:
+        base_url: http://127.0.0.1:8787
