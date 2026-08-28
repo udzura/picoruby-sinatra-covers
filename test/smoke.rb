@@ -32,6 +32,14 @@ class CoveredApp < Sinatra::Base
   post "/add" do
     (params[:left].to_i + params[:right].to_i).to_s
   end
+
+  get "/json" do
+    json ["PicoRuby", 42, true, nil]
+  end
+
+  get "/json/to-json" do
+    json({ name: "PicoRuby" }, json_encoder: :to_json)
+  end
 end
 
 def request(app, method, path, query = "", body = "")
@@ -64,6 +72,16 @@ assert(body == ["Hello, pico"], "Mustermann params")
 status, _headers, body = request(CoveredApp, "POST", "/add", "", "left=20&right=22")
 assert(status == 200, "post route status")
 assert(body == ["42"], "form params")
+
+status, headers, body = request(CoveredApp, "GET", "/json")
+assert(status == 200, "json route status")
+assert(headers["content-type"] == "application/json", "json content type")
+assert(body == ['["PicoRuby",42,true,null]'], "json response")
+
+status, headers, body = request(CoveredApp, "GET", "/json/to-json")
+assert(status == 200, "json symbol encoder status")
+assert(headers["content-type"] == "application/json", "json symbol encoder content type")
+assert(body == ['{"name":"PicoRuby"}'], "json symbol encoder response")
 
 status, _headers, body = request(CoveredApp, "GET", "/missing")
 assert(status == 404, "missing route status")

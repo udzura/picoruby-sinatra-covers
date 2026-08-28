@@ -10,6 +10,7 @@ Sinatra 4.2.1 の `Sinatra::Base` を PicoRuby 上で動かすための mrbgem �
 - query string と `application/x-www-form-urlencoded`
 - 文字列、status、headers からなる Rack response
 - 404 response
+- `sinatra/json`互換の JSON response helper
 
 session、Rack Protection、template engine、static files、self-hosted server はまだ対象外です。
 とくに session は明示的に `false` にしています。
@@ -29,6 +30,9 @@ conf.gem github: "udzura/mruby-rack"
 conf.gem github: "udzura/picoruby-sinatra-covers"
 ```
 
+`mruby-json` はこの mgem が固定リビジョンで自動解決します。別のrevisionを試す場合だけ、
+先に `conf.gem gemdir: "/path/to/mruby-json"` を追加してください。
+
 ## Example
 
 ```ruby
@@ -40,6 +44,20 @@ end
 ```
 
 Worker adapter には通常の Rack app と同じく `App` を登録します。
+
+### JSON responses
+
+`sinatra/json`と同じく、`json` helperで`application/json` responseを返せます。
+PicoRubyでは`mruby-json`をencoderとして使い、この mgem に自動で含まれます。
+
+```ruby
+get "/api/version" do
+  json name: "PicoRuby", version: 1
+end
+```
+
+`content_type:`、`json_encoder:` による上書きも使えます。Yajl templateや JSON parsing
+はまだ対象外です。
 
 ## Test
 

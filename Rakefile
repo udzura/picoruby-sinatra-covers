@@ -34,18 +34,10 @@ def prepare_mruby_regexp(root, mustermann_root)
     "mruby-regexp"
   )
   destination = File.join(PROJECT_ROOT, "tmp", "mruby-regexp")
-  patch = File.join(mustermann_root, "patches", "mruby-regexp-7257.patch")
-  stamp = File.join(destination, ".patched-7257")
-
-  if File.file?(stamp) && File.mtime(stamp) >= File.mtime(patch)
-    return destination
-  end
 
   FileUtils.rm_rf(destination)
   FileUtils.mkdir_p(File.dirname(destination))
   FileUtils.cp_r(source, destination)
-  sh "patch", "-d", destination, "-p1", "-i", patch
-  FileUtils.touch(stamp)
   destination
 end
 
