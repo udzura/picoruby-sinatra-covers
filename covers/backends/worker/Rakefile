@@ -1,5 +1,6 @@
 require "fileutils"
 require "open3"
+require_relative "../../lib/scenario_target"
 
 BACKEND_ROOT = File.expand_path(__dir__)
 PROJECT_ROOT = File.expand_path("../../..", BACKEND_ROOT)
@@ -8,7 +9,8 @@ PICORUBY_ROOT = ENV.fetch("PICORUBY_ROOT") do
 end
 PICORUBY_RAKEFILE = File.join(PICORUBY_ROOT, "Rakefile")
 BUILD_CONFIG = File.join(BACKEND_ROOT, "build_config", "picoruby-worker-wasm.rb")
-APP_SOURCE = File.join(PROJECT_ROOT, "covers", "basic_app.rb")
+TARGET = SinatraCovers::ScenarioTarget.from_environment
+APP_SOURCE = TARGET.app_path
 DIST_DIR = File.join(BACKEND_ROOT, "dist")
 
 abort "PicoRuby Rakefile was not found: #{PICORUBY_RAKEFILE}" unless File.file?(PICORUBY_RAKEFILE)
@@ -61,6 +63,11 @@ task :build do
   build_runtime!
   compile_app!
   stage_runtime!
+end
+
+desc "Compile the selected Sinatra cover application"
+task :app do
+  compile_app!
 end
 
 desc "Remove generated Worker artifacts"

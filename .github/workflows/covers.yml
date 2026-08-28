@@ -43,10 +43,14 @@ jobs:
 
       - name: Run CRuby cover
         id: cruby-cover
+        env:
+          COVER_SCENARIO: basic
         run: rake covers:cruby
 
       - name: Capture CRuby cover failure diagnostics
         if: failure() && steps.cruby-cover.outcome == 'failure'
+        env:
+          COVER_SCENARIO: basic
         run: |
           mkdir -p runn-diagnostics
           runn run covers/runbooks/cruby.yml --scopes run:exec --verbose --debug > runn-diagnostics/cruby.log 2>&1 || true
@@ -115,10 +119,14 @@ jobs:
 
       - name: Run PicoRuby Worker cover
         id: picoruby-worker-cover
+        env:
+          COVER_SCENARIO: basic
         run: rake covers:worker
 
       - name: Capture PicoRuby Worker cover failure diagnostics
         if: failure() && steps.picoruby-worker-cover.outcome == 'failure'
+        env:
+          COVER_SCENARIO: basic
         run: |
           mkdir -p runn-diagnostics
           runn run covers/runbooks/worker.yml --scopes run:exec --verbose --debug > runn-diagnostics/picoruby-worker.log 2>&1 || true

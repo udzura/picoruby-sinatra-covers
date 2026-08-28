@@ -1,5 +1,6 @@
 require "rake"
 require "fileutils"
+require_relative "covers/lib/scenario_target"
 
 PROJECT_ROOT = File.expand_path(__dir__)
 
@@ -68,16 +69,28 @@ task :test do
 end
 
 namespace :covers do
+  def selected_cover_scenario
+    target = SinatraCovers::ScenarioTarget.from_environment
+    target.app_path
+    target.scenario_path
+    target.name
+  end
+
   desc "Run the HTTP compatibility cover against CRuby Sinatra"
   task :cruby do
+    scenario = selected_cover_scenario
     sh "runn", "run", "--scopes", "run:exec", "--verbose",
+       "--var", "scenario:#{scenario}",
        File.join(PROJECT_ROOT, "covers", "runbooks", "cruby.yml")
   end
 
   desc "Run the HTTP compatibility cover against PicoRuby on Cloudflare Workers"
   task :worker do
-    sh "rake", "-f", File.join(PROJECT_ROOT, "covers", "backends", "worker", "Rakefile"), "build"
+    scenario = selected_cover_scenario
+    sh({ "COVER_SCENARIO" => scenario },
+       "rake", "-f", File.join(PROJECT_ROOT, "covers", "backends", "worker", "Rakefile"), "build")
     sh "runn", "run", "--scopes", "run:exec", "--verbose",
+       "--var", "scenario:#{scenario}",
        File.join(PROJECT_ROOT, "covers", "runbooks", "worker.yml")
   end
 end

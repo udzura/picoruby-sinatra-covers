@@ -1,9 +1,10 @@
 desc: Run shared Sinatra compatibility scenarios
 vars:
   base_url: http://127.0.0.1:9292
+  scenario: basic
 steps:
   - exec:
-      command: ruby covers/verify.rb
+      command: ruby covers/verify.rb "{{ vars.scenario }}"
       env:
         BASE_URL: "{{ vars.base_url }}"
     test: current.exit_code == 0

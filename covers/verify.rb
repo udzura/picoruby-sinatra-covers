@@ -1,5 +1,17 @@
 require_relative "lib/client"
+require_relative "lib/scenario_target"
 require_relative "lib/suite"
+
+scenario_name = ARGV.shift || ENV["COVER_SCENARIO"]
+abort "Usage: ruby covers/verify.rb SCENARIO" unless scenario_name
+abort "Unexpected arguments: #{ARGV.join(" ")}" unless ARGV.empty?
+
+begin
+  target = SinatraCovers::ScenarioTarget.new(scenario_name)
+  scenario_path = target.scenario_path
+rescue ArgumentError => error
+  abort error.message
+end
 
 base_url = ENV.fetch("BASE_URL")
 client = SinatraCovers::Client.new(base_url)
@@ -18,7 +30,5 @@ loop do
 end
 
 suite = SinatraCovers::Suite.new(client)
-Dir[File.expand_path("scenarios/*.rb", __dir__)].sort.each do |path|
-  suite.load_scenarios(path)
-end
+suite.load_scenarios(scenario_path)
 suite.finish!

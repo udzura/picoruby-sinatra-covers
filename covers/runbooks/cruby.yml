@@ -1,11 +1,15 @@
 desc: Cover Sinatra behavior on CRuby
+vars:
+  scenario: basic
 steps:
   - exec:
       command: bundle exec rackup covers/backends/cruby/config.ru --host 127.0.0.1 --port 9292
       background: true
       env:
         BUNDLE_GEMFILE: covers/Gemfile
+        COVER_SCENARIO: "{{ vars.scenario }}"
   - include:
       path: verify.yml
       vars:
         base_url: http://127.0.0.1:9292
+        scenario: "{{ vars.scenario }}"
