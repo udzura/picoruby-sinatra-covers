@@ -1,0 +1,107 @@
+name: Sinatra covers
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  RUNN_VERSION: 1.9.5
+
+jobs:
+  cruby:
+    name: CRuby
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/covers/Gemfile
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+          bundler-cache: true
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+          cache: false
+
+      - name: Install runn
+        run: go install github.com/k1LoW/runn/cmd/runn@v${RUNN_VERSION}
+
+      - name: Run CRuby cover
+        run: rake covers:cruby
+
+  picoruby-worker:
+    name: PicoRuby Worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PICORUBY_ROOT: ${{ github.workspace }}/picoruby
+      PICORUBY_WORKER_ROOT: ${{ github.workspace }}/picoruby-cloudflare-worker-wasm
+      PICORUBY_WORKER_WASM_GEM_DIR: ${{ github.workspace }}/picoruby-cloudflare-worker-wasm
+      PICORUBY_SINATRA_COVERS_GEM_DIR: ${{ github.workspace }}
+
+    steps:
+      - name: Check out Sinatra covers
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Check out PicoRuby
+        uses: actions/checkout@v7
+        with:
+          repository: picoruby/picoruby
+          path: picoruby
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Check out PicoRuby Worker
+        uses: actions/checkout@v7
+        with:
+          repository: udzura/picoruby-cloudflare-worker-wasm
+          path: picoruby-cloudflare-worker-wasm
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: picoruby-cloudflare-worker-wasm/spike/package-lock.json
+
+      - name: Set up Emscripten
+        uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: 5.0.7
+          actions-cache-folder: emsdk-cache
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+          cache: false
+
+      - name: Install runn
+        run: go install github.com/k1LoW/runn/cmd/runn@v${RUNN_VERSION}
+
+      - name: Install Worker dependencies
+        run: npm ci --prefix picoruby-cloudflare-worker-wasm/spike
+
+      - name: Build PicoRuby Worker runtime
+        run: npm run build --prefix picoruby-cloudflare-worker-wasm/spike
+
+      - name: Run PicoRuby Worker cover
+        run: rake covers:worker
