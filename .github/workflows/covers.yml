@@ -46,6 +46,7 @@ jobs:
         run: |
           env COVER_SCENARIO=basic  rake covers:cruby
           env COVER_SCENARIO=errors rake covers:cruby
+          env COVER_SCENARIO=json   rake covers:cruby
 
       - name: Capture CRuby cover failure diagnostics
         if: failure() && steps.cruby-cover.outcome == 'failure'
@@ -55,8 +56,10 @@ jobs:
           mkdir -p runn-diagnostics
           env COVER_SCENARIO=basic  runn run covers/runbooks/cruby.yml --scopes run:exec --verbose --debug > runn-diagnostics/cruby-basic.log 2>&1 || true
           env COVER_SCENARIO=errors runn run covers/runbooks/cruby.yml --scopes run:exec --verbose --debug > runn-diagnostics/cruby-errors.log 2>&1 || true
+          env COVER_SCENARIO=json   runn run covers/runbooks/cruby.yml --scopes run:exec --verbose --debug > runn-diagnostics/cruby-json.log 2>&1 || true
           test -s runn-diagnostics/cruby-basic.log
           test -s runn-diagnostics/cruby-errors.log
+          test -s runn-diagnostics/cruby-json.log
 
       - name: Upload CRuby cover failure diagnostics
         if: failure() && steps.cruby-cover.outcome == 'failure'
@@ -124,6 +127,7 @@ jobs:
         run: |
           env COVER_SCENARIO=basic  rake covers:worker
           env COVER_SCENARIO=errors rake covers:worker
+          env COVER_SCENARIO=json   rake covers:worker
 
       - name: Capture PicoRuby Worker cover failure diagnostics
         if: failure() && steps.picoruby-worker-cover.outcome == 'failure'
@@ -131,8 +135,10 @@ jobs:
           mkdir -p runn-diagnostics
           env COVER_SCENARIO=basic  runn run covers/runbooks/worker.yml --scopes run:exec --verbose --debug > runn-diagnostics/picoruby-worker-basic.log 2>&1 || true
           env COVER_SCENARIO=errors runn run covers/runbooks/worker.yml --scopes run:exec --verbose --debug > runn-diagnostics/picoruby-worker-errors.log 2>&1 || true
+          env COVER_SCENARIO=json   runn run covers/runbooks/worker.yml --scopes run:exec --verbose --debug > runn-diagnostics/picoruby-worker-json.log 2>&1 || true
           test -s runn-diagnostics/picoruby-worker-basic.log
           test -s runn-diagnostics/picoruby-worker-errors.log
+          test -s runn-diagnostics/picoruby-worker-json.log
 
       - name: Upload PicoRuby Worker cover failure diagnostics
         if: failure() && steps.picoruby-worker-cover.outcome == 'failure'

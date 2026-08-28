@@ -1,3 +1,7 @@
+require_relative "build_support/mruby_json"
+
+PicoRubySinatraCoversBuild::MrubyJson.enable_legacy_source_path
+
 MRuby::Gem::Specification.new("picoruby-sinatra-covers") do |spec|
   spec.license = "MIT"
   spec.author = "Kondo Uchio"
@@ -16,6 +20,10 @@ MRuby::Gem::Specification.new("picoruby-sinatra-covers") do |spec|
 
   spec.add_dependency "mruby-rack"
   spec.add_dependency "mruby-mustermann"
+  spec.add_dependency "mruby-json",
+                      github: "mattn/mruby-json",
+                      branch: "master",
+                      checksum_hash: "f99d9428025469f2400f93c53b185f65f963e507"
 
   %w[
     mruby-array-ext
@@ -46,6 +54,7 @@ MRuby::Gem::Specification.new("picoruby-sinatra-covers") do |spec|
   spec.rbfiles = compat + [
     File.join(sinatra_lib, "sinatra", "version.rb"),
     base,
+    File.join(dir, "mrblib", "picoruby_sinatra_covers", "contrib", "json.rb"),
     File.join(dir, "mrblib", "picoruby_sinatra_covers", "defaults.rb")
   ]
 end
