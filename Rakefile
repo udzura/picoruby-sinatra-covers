@@ -76,6 +76,7 @@ namespace :covers do
 
   desc "Run the HTTP compatibility cover against PicoRuby on Cloudflare Workers"
   task :worker do
+    sh "rake", "-f", File.join(PROJECT_ROOT, "covers", "backends", "worker", "Rakefile"), "build"
     sh "runn", "run", "--scopes", "run:exec", "--verbose",
        File.join(PROJECT_ROOT, "covers", "runbooks", "worker.yml")
   end

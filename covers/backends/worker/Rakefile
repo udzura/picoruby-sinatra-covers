@@ -1,0 +1,69 @@
+require "fileutils"
+require "open3"
+
+BACKEND_ROOT = File.expand_path(__dir__)
+PROJECT_ROOT = File.expand_path("../../..", BACKEND_ROOT)
+PICORUBY_ROOT = ENV.fetch("PICORUBY_ROOT") do
+  abort "Set PICORUBY_ROOT to a PicoRuby source checkout."
+end
+PICORUBY_RAKEFILE = File.join(PICORUBY_ROOT, "Rakefile")
+BUILD_CONFIG = File.join(BACKEND_ROOT, "build_config", "picoruby-worker-wasm.rb")
+APP_SOURCE = File.join(PROJECT_ROOT, "covers", "basic_app.rb")
+DIST_DIR = File.join(BACKEND_ROOT, "dist")
+
+abort "PicoRuby Rakefile was not found: #{PICORUBY_RAKEFILE}" unless File.file?(PICORUBY_RAKEFILE)
+
+def verify_emscripten!
+  expected = File.read(File.join(BACKEND_ROOT, ".emscripten-version")).strip
+  output, status = Open3.capture2e("emcc", "--version")
+  abort "emcc was not found. Activate emsdk #{expected} first." unless status.success?
+
+  actual = output[/\bemcc .*?\s(\d+\.\d+\.\d+)\s\(/, 1]
+  return if actual == expected
+
+  abort "Emscripten #{expected} is required (found #{actual || "unknown"})."
+rescue Errno::ENOENT
+  abort "emcc was not found. Activate emsdk #{expected} first."
+end
+
+def build_runtime!
+  verify_emscripten!
+  environment = {
+    "CONFIG" => BUILD_CONFIG,
+    "PICORUBY_SINATRA_COVERS_GEM_DIR" => PROJECT_ROOT,
+  }
+  sh environment, "rake", "-f", PICORUBY_RAKEFILE
+end
+
+def compile_app!
+  mrbc = ENV.fetch(
+    "PICORUBY_MRBC",
+    File.join(PICORUBY_ROOT, "build", "mrbc", "default", "bin", "mrbc"),
+  )
+  abort "mrbc was not found: #{mrbc}" unless File.executable?(mrbc)
+
+  FileUtils.mkdir_p(DIST_DIR)
+  sh mrbc, "-o", File.join(DIST_DIR, "app.bin"), APP_SOURCE
+end
+
+def stage_runtime!
+  runtime_dir = File.join(PICORUBY_ROOT, "build", "picoruby-worker-wasm", "bin")
+  %w[picoruby-worker.js picoruby-worker.wasm].each do |artifact|
+    source = File.join(runtime_dir, artifact)
+    abort "runtime artifact was not found: #{source}" unless File.file?(source)
+
+    FileUtils.cp(source, DIST_DIR)
+  end
+end
+
+desc "Build the Worker runtime and the Sinatra cover application"
+task :build do
+  build_runtime!
+  compile_app!
+  stage_runtime!
+end
+
+desc "Remove generated Worker artifacts"
+task :clean do
+  FileUtils.rm_rf(DIST_DIR)
+end

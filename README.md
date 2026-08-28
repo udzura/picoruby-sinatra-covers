@@ -69,15 +69,19 @@ BUNDLE_GEMFILE=covers/Gemfile bundle install
 rake covers:cruby
 ```
 
-PicoRuby Worker に対して実行する場合は、あらかじめ
-`picoruby-cloudflare-worker-wasm/spike` の runtime をビルドしてください。
-その後、各 checkout の場所を指定して実行します。
+PicoRuby Worker に対して実行する場合、`covers/backends/worker/` がWasm build、
+Ruby bytecode生成、Wrangler起動を担います。Worker mgemは0.2.2に固定してGitHubから
+解決するため、spike checkoutは不要です。
 
 ```sh
+npm ci --prefix covers/backends/worker
 PICORUBY_ROOT=/absolute/path/to/picoruby \
-PICORUBY_WORKER_ROOT=/absolute/path/to/picoruby-cloudflare-worker-wasm \
 rake covers:worker
 ```
+
+開発中のWorker mgemを検証する場合だけ、
+`PICORUBY_WORKER_WASM_GEM_DIR=/absolute/path/to/picoruby-cloudflare-worker-wasm`
+でGitHub固定をローカルcheckoutに置き換えられます。
 
 どちらの runbook もserverをbackgroundで起動し、`covers/verify.rb` を実行して
 終了時にserverを停止します。互換性ケースは `covers/scenarios/` に集約し、
