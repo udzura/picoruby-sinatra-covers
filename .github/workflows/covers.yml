@@ -38,7 +38,24 @@ jobs:
         run: go install github.com/k1LoW/runn/cmd/runn@v${RUNN_VERSION}
 
       - name: Run CRuby cover
+        id: cruby-cover
         run: rake covers:cruby
+
+      - name: Capture CRuby cover failure diagnostics
+        if: failure() && steps.cruby-cover.outcome == 'failure'
+        run: |
+          mkdir -p runn-diagnostics
+          runn run covers/runbooks/cruby.yml --scopes run:exec --verbose --debug > runn-diagnostics/cruby.log 2>&1 || true
+          test -s runn-diagnostics/cruby.log
+
+      - name: Upload CRuby cover failure diagnostics
+        if: failure() && steps.cruby-cover.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sinatra-covers-cruby-diagnostics
+          path: runn-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 7
 
   picoruby-worker:
     name: PicoRuby Worker
@@ -104,4 +121,21 @@ jobs:
         run: npm run build --prefix picoruby-cloudflare-worker-wasm/spike
 
       - name: Run PicoRuby Worker cover
+        id: picoruby-worker-cover
         run: rake covers:worker
+
+      - name: Capture PicoRuby Worker cover failure diagnostics
+        if: failure() && steps.picoruby-worker-cover.outcome == 'failure'
+        run: |
+          mkdir -p runn-diagnostics
+          runn run covers/runbooks/worker.yml --scopes run:exec --verbose --debug > runn-diagnostics/picoruby-worker.log 2>&1 || true
+          test -s runn-diagnostics/picoruby-worker.log
+
+      - name: Upload PicoRuby Worker cover failure diagnostics
+        if: failure() && steps.picoruby-worker-cover.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sinatra-covers-picoruby-worker-diagnostics
+          path: runn-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 7
