@@ -89,6 +89,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: udzura/picoruby-cloudflare-worker-wasm
+          # picoruby-worker-wasm 0.2.2
+          ref: 939022a7d2c77acb3b2d456c8ebbcb54a17a9aca
           path: picoruby-cloudflare-worker-wasm
 
       - name: Set up Ruby
