@@ -149,3 +149,26 @@ class String
     end
   end
 end
+
+# Override the default raise method to maintain $ERROR_INFO similar to Ruby's behavior
+# And re-produce past exception in bare raise
+alias orig_raise raise
+$ERROR_INFO = nil
+
+def raise(*orig_args);
+  if orig_args.empty? && !$ERROR_INFO.nil?
+    orig_raise($ERROR_INFO)
+  elsif orig_args.empty?
+    $ERROR_INFO = RuntimeError.new
+    orig_raise($ERROR_INFO)
+  elsif orig_args[0].is_a?(Exception)
+    $ERROR_INFO = orig_args[0]
+    orig_raise(*orig_args)
+  elsif orig_args[0].is_a?(Class)
+    $ERROR_INFO = orig_args[0].new(*orig_args[1..-1])
+    orig_raise($ERROR_INFO)
+  else
+    $ERROR_INFO = RuntimeError.new(*orig_args)
+    orig_raise($ERROR_INFO)
+  end
+end

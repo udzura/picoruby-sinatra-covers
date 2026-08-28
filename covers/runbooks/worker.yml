@@ -1,0 +1,14 @@
+desc: Cover Sinatra behavior on PicoRuby Cloudflare Workers
+vars:
+  scenario: basic
+steps:
+  - exec:
+      command: ruby covers/backends/worker/start.rb
+      background: true
+      env:
+        COVER_SCENARIO: "{{ vars.scenario }}"
+  - include:
+      path: verify.yml
+      vars:
+        base_url: http://127.0.0.1:8787
+        scenario: "{{ vars.scenario }}"

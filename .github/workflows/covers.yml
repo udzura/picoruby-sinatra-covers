@@ -1,0 +1,144 @@
+name: Sinatra covers
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+env:
+  RUNN_VERSION: 1.9.5
+
+jobs:
+  cruby:
+    name: CRuby
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/covers/Gemfile
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+          bundler-cache: true
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+          cache: false
+
+      - name: Install runn
+        run: go install github.com/k1LoW/runn/cmd/runn@v${RUNN_VERSION}
+
+      - name: Run CRuby cover
+        id: cruby-cover
+        run: |
+          env COVER_SCENARIO=basic  rake covers:cruby
+          env COVER_SCENARIO=errors rake covers:cruby
+
+      - name: Capture CRuby cover failure diagnostics
+        if: failure() && steps.cruby-cover.outcome == 'failure'
+        env:
+          COVER_SCENARIO: basic
+        run: |
+          mkdir -p runn-diagnostics
+          env COVER_SCENARIO=basic  runn run covers/runbooks/cruby.yml --scopes run:exec --verbose --debug > runn-diagnostics/cruby-basic.log 2>&1 || true
+          env COVER_SCENARIO=errors runn run covers/runbooks/cruby.yml --scopes run:exec --verbose --debug > runn-diagnostics/cruby-errors.log 2>&1 || true
+          test -s runn-diagnostics/cruby-basic.log
+          test -s runn-diagnostics/cruby-errors.log
+
+      - name: Upload CRuby cover failure diagnostics
+        if: failure() && steps.cruby-cover.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sinatra-covers-cruby-diagnostics
+          path: runn-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  picoruby-worker:
+    name: PicoRuby Worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PICORUBY_ROOT: ${{ github.workspace }}/picoruby
+      PICORUBY_SINATRA_COVERS_GEM_DIR: ${{ github.workspace }}
+
+    steps:
+      - name: Check out Sinatra covers
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Check out PicoRuby
+        uses: actions/checkout@v7
+        with:
+          repository: picoruby/picoruby
+          path: picoruby
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: covers/backends/worker/package-lock.json
+
+      - name: Set up Emscripten
+        uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: 5.0.7
+          actions-cache-folder: emsdk-cache
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+          cache: false
+
+      - name: Install runn
+        run: go install github.com/k1LoW/runn/cmd/runn@v${RUNN_VERSION}
+
+      - name: Install Worker dependencies
+        run: npm ci --prefix covers/backends/worker
+
+      - name: Run PicoRuby Worker cover
+        id: picoruby-worker-cover
+        run: |
+          env COVER_SCENARIO=basic  rake covers:worker
+          env COVER_SCENARIO=errors rake covers:worker
+
+      - name: Capture PicoRuby Worker cover failure diagnostics
+        if: failure() && steps.picoruby-worker-cover.outcome == 'failure'
+        run: |
+          mkdir -p runn-diagnostics
+          env COVER_SCENARIO=basic  runn run covers/runbooks/worker.yml --scopes run:exec --verbose --debug > runn-diagnostics/picoruby-worker-basic.log 2>&1 || true
+          env COVER_SCENARIO=errors runn run covers/runbooks/worker.yml --scopes run:exec --verbose --debug > runn-diagnostics/picoruby-worker-errors.log 2>&1 || true
+          test -s runn-diagnostics/picoruby-worker-basic.log
+          test -s runn-diagnostics/picoruby-worker-errors.log
+
+      - name: Upload PicoRuby Worker cover failure diagnostics
+        if: failure() && steps.picoruby-worker-cover.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sinatra-covers-picoruby-worker-diagnostics
+          path: runn-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 7
