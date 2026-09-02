@@ -98,6 +98,21 @@ PICORUBY_ROOT=/absolute/path/to/picoruby \
 rake covers:worker
 ```
 
+複数のcoverを続けて実行するときは、CIと同様にruntimeを一度だけビルドして再利用できます。
+各coverでは選択したappのbytecodeを生成し直し、serverも個別に起動・停止します。
+
+```sh
+export PICORUBY_ROOT=/absolute/path/to/picoruby
+rake covers:worker:runtime
+COVER_SCENARIO=basic  rake covers:worker:run
+COVER_SCENARIO=errors rake covers:worker:run
+COVER_SCENARIO=json   rake covers:worker:run
+```
+
+`covers:worker:run` はruntimeを再ビルドしません。PicoRuby、mgem、Sinatra本体や
+build configを変更した場合は `covers:worker:runtime` を再実行してください。
+通常の `covers:worker` は毎回runtimeビルドを含みます。
+
 実行するcoverは `COVER_SCENARIO` で選択します。たとえば `routing` を追加する場合は、
 `covers/app/routing.rb` と `covers/scenarios/routing.rb` を作成し、次のように
 それぞれのruntimeへ同じシナリオを実行できます。

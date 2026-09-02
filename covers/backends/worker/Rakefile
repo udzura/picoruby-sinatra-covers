@@ -9,8 +9,6 @@ PICORUBY_ROOT = ENV.fetch("PICORUBY_ROOT") do
 end
 PICORUBY_RAKEFILE = File.join(PICORUBY_ROOT, "Rakefile")
 BUILD_CONFIG = File.join(BACKEND_ROOT, "build_config", "picoruby-worker-wasm.rb")
-TARGET = SinatraCovers::ScenarioTarget.from_environment
-APP_SOURCE = TARGET.app_path
 DIST_DIR = File.join(BACKEND_ROOT, "dist")
 
 abort "PicoRuby Rakefile was not found: #{PICORUBY_RAKEFILE}" unless File.file?(PICORUBY_RAKEFILE)
@@ -37,19 +35,25 @@ def build_runtime!
   sh environment, "rake", "-f", PICORUBY_RAKEFILE
 end
 
-def compile_app!
+def mrbc_path
   mrbc = ENV.fetch(
     "PICORUBY_MRBC",
     File.join(PICORUBY_ROOT, "build", "mrbc", "default", "bin", "mrbc"),
   )
   abort "mrbc was not found: #{mrbc}" unless File.executable?(mrbc)
+  mrbc
+end
 
+def compile_app!
+  app_source = SinatraCovers::ScenarioTarget.from_environment.app_path
+  mrbc = mrbc_path
   FileUtils.mkdir_p(DIST_DIR)
-  sh mrbc, "-o", File.join(DIST_DIR, "app.bin"), APP_SOURCE
+  sh mrbc, "-o", File.join(DIST_DIR, "app.bin"), app_source
 end
 
 def stage_runtime!
   runtime_dir = File.join(PICORUBY_ROOT, "build", "picoruby-worker-wasm", "bin")
+  FileUtils.mkdir_p(DIST_DIR)
   %w[picoruby-worker.js picoruby-worker.wasm].each do |artifact|
     source = File.join(runtime_dir, artifact)
     abort "runtime artifact was not found: #{source}" unless File.file?(source)
@@ -59,10 +63,21 @@ def stage_runtime!
 end
 
 desc "Build the Worker runtime and the Sinatra cover application"
-task :build do
+task build: [:runtime, :app]
+
+desc "Build and stage the Worker runtime without compiling an application"
+task :runtime do
   build_runtime!
-  compile_app!
   stage_runtime!
+end
+
+desc "Check that the staged Worker runtime and mrbc are available"
+task :check_runtime do
+  mrbc_path
+  %w[picoruby-worker.js picoruby-worker.wasm].each do |artifact|
+    path = File.join(DIST_DIR, artifact)
+    abort "Worker runtime artifact was not found: #{path}. Run `rake covers:worker:runtime` first." unless File.file?(path)
+  end
 end
 
 desc "Compile the selected Sinatra cover application"
