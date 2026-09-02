@@ -71,7 +71,7 @@ namespace :covers do
   desc "Run the HTTP compatibility cover against CRuby Sinatra"
   task :cruby do
     scenario = selected_cover_scenario
-    sh "runn", "run", "--scopes", "run:exec", "--verbose",
+    sh "runn", "run", "--scopes", "run:exec", "--verbose", "--debug-on-failure",
        "--var", "scenario:#{scenario}",
        File.join(PROJECT_ROOT, "covers", "runbooks", "cruby.yml")
   end
@@ -81,7 +81,7 @@ namespace :covers do
     scenario = selected_cover_scenario
     sh({ "COVER_SCENARIO" => scenario },
        "rake", "-f", File.join(PROJECT_ROOT, "covers", "backends", "worker", "Rakefile"), "build")
-    sh "runn", "run", "--scopes", "run:exec", "--verbose",
+    sh "runn", "run", "--scopes", "run:exec", "--verbose", "--debug-on-failure",
        "--var", "scenario:#{scenario}",
        File.join(PROJECT_ROOT, "covers", "runbooks", "worker.yml")
   end
