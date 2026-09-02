@@ -78,12 +78,25 @@ namespace :covers do
 
   desc "Run the HTTP compatibility cover against PicoRuby on Cloudflare Workers"
   task :worker do
-    scenario = selected_cover_scenario
-    sh({ "COVER_SCENARIO" => scenario },
-       "rake", "-f", File.join(PROJECT_ROOT, "covers", "backends", "worker", "Rakefile"), "build")
-    sh "runn", "run", "--scopes", "run:exec", "--verbose", "--debug-on-failure",
-       "--var", "scenario:#{scenario}",
-       File.join(PROJECT_ROOT, "covers", "runbooks", "worker.yml")
+    selected_cover_scenario
+    Rake::Task["covers:worker:runtime"].invoke
+    Rake::Task["covers:worker:run"].invoke
+  end
+
+  namespace :worker do
+    desc "Build and stage the PicoRuby Worker runtime once for multiple covers"
+    task :runtime do
+      sh "rake", "-f", File.join(PROJECT_ROOT, "covers", "backends", "worker", "Rakefile"), "runtime"
+    end
+
+    desc "Run a Worker cover using the already-built runtime"
+    task :run do
+      scenario = selected_cover_scenario
+      sh "rake", "-f", File.join(PROJECT_ROOT, "covers", "backends", "worker", "Rakefile"), "check_runtime"
+      sh "runn", "run", "--scopes", "run:exec", "--verbose", "--debug-on-failure",
+         "--var", "scenario:#{scenario}",
+         File.join(PROJECT_ROOT, "covers", "runbooks", "worker.yml")
+    end
   end
 end
 

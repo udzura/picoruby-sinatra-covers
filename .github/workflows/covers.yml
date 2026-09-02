@@ -104,8 +104,11 @@ jobs:
       - name: Install Worker dependencies
         run: npm ci --prefix covers/backends/worker
 
+      - name: Build PicoRuby Worker runtime
+        run: rake covers:worker:runtime
+
       - name: Run PicoRuby Worker cover
         run: |
-          env COVER_SCENARIO=basic  rake covers:worker
-          env COVER_SCENARIO=errors rake covers:worker
-          env COVER_SCENARIO=json   rake covers:worker
+          env COVER_SCENARIO=basic  rake covers:worker:run
+          env COVER_SCENARIO=errors rake covers:worker:run
+          env COVER_SCENARIO=json   rake covers:worker:run
