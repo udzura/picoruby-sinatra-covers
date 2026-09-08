@@ -20,37 +20,16 @@ MRuby::CrossBuild.new("picoruby-worker-wasm") do |conf|
   conf.ports :worker_wasm
   conf.picoruby(alloc_estalloc: false)
 
-  mruby_gems = File.join(MRUBY_ROOT, "mrbgems", "picoruby-mruby", "lib", "mruby", "mrbgems")
-  %w[
-    mruby-array-ext
-    mruby-catch
-    mruby-class-ext
-    mruby-enum-ext
-    mruby-hash-ext
-    mruby-kernel-ext
-    mruby-metaprog
-    mruby-method
-    mruby-numeric-ext
-    mruby-object-ext
-    mruby-proc-ext
-    mruby-sprintf
-    mruby-string-ext
-    mruby-struct
-    mruby-bin-mruby
-    mruby-regexp
-  ].each do |name|
-    conf.gem gemdir: File.join(mruby_gems, name)
+  if (gem_dir = ENV["PICORUBY_SINATRA_COVERS_GEM_DIR"])
+    conf.gem gemdir: File.expand_path(gem_dir)
+  else
+    conf.gem github: "udzura/picoruby-sinatra-covers", branch: "master"
   end
 
-  {
-    "MRUBY_MUSTERMANN_GEM_DIR" => "udzura/mruby-mustermann",
-    "MRUBY_RACK_GEM_DIR" => "udzura/mruby-rack",
-    "PICORUBY_SINATRA_COVERS_GEM_DIR" => "udzura/picoruby-sinatra-covers",
-  }.each do |environment, repository|
+  # Register Sinatra's dependency sources first, then optional local overrides.
+  %w[MRUBY_MUSTERMANN_GEM_DIR MRUBY_RACK_GEM_DIR].each do |environment|
     if (gem_dir = ENV[environment])
       conf.gem gemdir: File.expand_path(gem_dir)
-    else
-      conf.gem github: repository, branch: "master"
     end
   end
 
@@ -58,7 +37,7 @@ MRuby::CrossBuild.new("picoruby-worker-wasm") do |conf|
     conf.gem gemdir: File.expand_path(gem_dir)
   else
     conf.gem github: "udzura/picoruby-cloudflare-worker-wasm",
-             branch: "0.2.2",
-             checksum_hash: "939022a7d2c77acb3b2d456c8ebbcb54a17a9aca"
+             branch: "master",
+             checksum_hash: "b342a9a1952332cc8fa0e1c41eb4e458c3a8b0a9"
   end
 end

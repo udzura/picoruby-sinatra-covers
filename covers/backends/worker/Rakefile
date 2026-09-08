@@ -32,7 +32,9 @@ def build_runtime!
     "CONFIG" => BUILD_CONFIG,
     "PICORUBY_SINATRA_COVERS_GEM_DIR" => PROJECT_ROOT,
   }
-  sh environment, "rake", "-f", PICORUBY_RAKEFILE
+  # An explicit target keeps mruby-compiler's clean-only guard from skipping
+  # Prism template generation when Rake's top_level_tasks would be empty.
+  Dir.chdir(PICORUBY_ROOT) { sh environment, "rake", "-f", PICORUBY_RAKEFILE, "all" }
 end
 
 def mrbc_path
