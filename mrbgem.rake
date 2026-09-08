@@ -18,8 +18,8 @@ MRuby::Gem::Specification.new("picoruby-sinatra-covers") do |spec|
     MESSAGE
   end
 
-  spec.add_dependency github: "udzura/mruby-rack"
-  spec.add_dependency github: "udzura/mruby-mustermann"
+  spec.add_dependency "mruby-rack", github: "udzura/mruby-rack"
+  spec.add_dependency "mruby-mustermann", github: "udzura/mruby-mustermann"
   spec.add_dependency "mruby-json",
                       github: "mattn/mruby-json",
                       branch: "master",
