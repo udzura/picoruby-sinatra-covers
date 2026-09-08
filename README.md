@@ -22,15 +22,15 @@ session、Rack Protection、template engine、static files、self-hosted server 
 - `udzura/mruby-mustermann`
 - Sinatra 4.2.1（git submodule）
 
-アプリケーション側の build config では、依存を含めて次のように追加します。
+アプリケーション側の build config では、この mgem だけを追加します。
 
 ```ruby
-conf.gem github: "udzura/mruby-mustermann"
-conf.gem github: "udzura/mruby-rack"
 conf.gem github: "udzura/picoruby-sinatra-covers"
 ```
 
-`mruby-json` はこの mgem が固定リビジョンで自動解決します。別のrevisionを試す場合だけ、
+`mruby-rack` と `mruby-mustermann` は GitHub から、必要な mruby 標準 mgem は
+PicoRuby 内の mruby checkout から自動解決します。
+`mruby-json` は固定リビジョンで自動解決します。別のrevisionを試す場合だけ、
 先に `conf.gem gemdir: "/path/to/mruby-json"` を追加してください。
 
 ## Example
@@ -89,8 +89,8 @@ rake covers:cruby
 ```
 
 PicoRuby Worker に対して実行する場合、`covers/backends/worker/` がWasm build、
-Ruby bytecode生成、Wrangler起動を担います。Worker mgemは0.2.2に固定してGitHubから
-解決するため、spike checkoutは不要です。
+Ruby bytecode生成、Wrangler起動を担います。Worker mgemは検証済みのGitHub revisionに
+固定して解決するため、spike checkoutは不要です。
 
 ```sh
 npm ci --prefix covers/backends/worker
