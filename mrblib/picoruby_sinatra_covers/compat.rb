@@ -3,6 +3,9 @@
 
 ENV = {} unless Object.const_defined?(:ENV)
 
+class LoadError < Exception
+end
+
 # Sinatra::Base#set emits tiny getter methods with class_eval(String). Keeping
 # mruby-eval out of the Worker runtime is preferable, so translate only that
 # generated form to define_method for both Base and application subclasses.
@@ -75,17 +78,6 @@ end
 
 unless Object.const_defined?(:Tempfile)
   class Tempfile
-  end
-end
-
-unless Object.const_defined?(:SecureRandom)
-  module SecureRandom
-    module_function
-
-    def hex(length = nil)
-      size = length || 16
-      "0" * (size * 2)
-    end
   end
 end
 
