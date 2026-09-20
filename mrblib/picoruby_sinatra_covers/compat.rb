@@ -142,25 +142,65 @@ class String
   end
 end
 
-# Override the default raise method to maintain $ERROR_INFO similar to Ruby's behavior
-# And re-produce past exception in bare raise
-alias orig_raise raise
-$ERROR_INFO = nil
+if Sinatra::VERSION == "4.2.1"
+  # Override the process_route method for Sinatra 4.2.1
+  # to avoid "bare raise" issues in mruby.
+  # See: https://github.com/sinatra/sinatra/pull/2190
+  class Sinatra::Base
+    def process_route(pattern, conditions, block = nil, values = [])
+      route = @request.path_info
+      route = '/' if route.empty? && !settings.empty_path_info?
+      route = route[0..-2] if !settings.strict_paths? && route != '/' && route.end_with?('/')
 
-def raise(*orig_args);
-  if orig_args.empty? && !$ERROR_INFO.nil?
-    orig_raise($ERROR_INFO)
-  elsif orig_args.empty?
-    $ERROR_INFO = RuntimeError.new
-    orig_raise($ERROR_INFO)
-  elsif orig_args[0].is_a?(Exception)
-    $ERROR_INFO = orig_args[0]
-    orig_raise(*orig_args)
-  elsif orig_args[0].is_a?(Class)
-    $ERROR_INFO = orig_args[0].new(*orig_args[1..-1])
-    orig_raise($ERROR_INFO)
-  else
-    $ERROR_INFO = RuntimeError.new(*orig_args)
-    orig_raise($ERROR_INFO)
+      params = pattern.params(route)
+      return unless params
+
+      params.delete('ignore') # TODO: better params handling, maybe turn it into "smart" object or detect changes
+      force_encoding(params)
+      @params = @params.merge(params) { |_k, v1, v2| v2 || v1 } if params.any?
+
+      regexp_exists = pattern.is_a?(Mustermann::Regular) || (pattern.respond_to?(:patterns) && pattern.patterns.any? { |subpattern| subpattern.is_a?(Mustermann::Regular) })
+      if regexp_exists
+        captures           = pattern.match(route).captures.map { |c| URI_INSTANCE.unescape(c) if c }
+        values            += captures
+        @params[:captures] = force_encoding(captures) unless captures.nil? || captures.empty?
+      else
+        values += params.values.flatten
+      end
+
+      catch(:pass) do
+        conditions.each { |c| throw :pass if c.bind(self).call == false }
+        block ? block[self, values] : yield(self, values)
+      end
+    rescue StandardError => e
+      @env['sinatra.error.params'] = @params
+      raise e
+    ensure
+      params ||= {}
+      params.each { |k, _| @params.delete(k) } unless @env['sinatra.error.params']
+    end
+  end
+else
+  # Override the default raise method to maintain $ERROR_INFO similar to Ruby's behavior
+  # And re-produce past exception in bare raise
+  alias orig_raise raise
+  $ERROR_INFO = nil
+
+  def raise(*orig_args);
+    if orig_args.empty? && !$ERROR_INFO.nil?
+      orig_raise($ERROR_INFO)
+    elsif orig_args.empty?
+      $ERROR_INFO = RuntimeError.new
+      orig_raise($ERROR_INFO)
+    elsif orig_args[0].is_a?(Exception)
+      $ERROR_INFO = orig_args[0]
+      orig_raise(*orig_args)
+    elsif orig_args[0].is_a?(Class)
+      $ERROR_INFO = orig_args[0].new(*orig_args[1..-1])
+      orig_raise($ERROR_INFO)
+    else
+      $ERROR_INFO = RuntimeError.new(*orig_args)
+      orig_raise($ERROR_INFO)
+    end
   end
 end
