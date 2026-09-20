@@ -56,8 +56,9 @@ MRuby::Gem::Specification.new("picoruby-sinatra-covers") do |spec|
     File.join(dir, "mrblib", "picoruby_sinatra_covers", "#{name}.rb")
   end
 
-  spec.rbfiles = compat + [
-    File.join(sinatra_lib, "sinatra", "version.rb"),
+  spec.rbfiles = [
+    File.join(sinatra_lib, "sinatra", "version.rb")
+  ] + compat + [
     base,
     File.join(dir, "mrblib", "picoruby_sinatra_covers", "contrib", "json.rb"),
     File.join(dir, "mrblib", "picoruby_sinatra_covers", "defaults.rb")
