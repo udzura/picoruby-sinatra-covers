@@ -15,7 +15,11 @@ end
 
 base_url = ENV.fetch("BASE_URL")
 client = SinatraCovers::Client.new(base_url)
-deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 30
+ready_timeout = Integer(ENV.fetch("SERVER_READY_TIMEOUT", "90"), 10)
+abort "SERVER_READY_TIMEOUT must be positive" unless ready_timeout.positive?
+started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+deadline = started_at + ready_timeout
+next_progress_at = 10
 
 loop do
   begin
@@ -23,8 +27,20 @@ loop do
   rescue Errno::ECONNREFUSED, Errno::ECONNRESET, EOFError, Net::OpenTimeout
   end
 
+  elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
+  if elapsed >= next_progress_at
+    warn "Waiting for #{base_url} (#{elapsed.round}s/#{ready_timeout}s)"
+    next_progress_at += 10
+  end
+
   if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
-    abort "Server did not become ready at #{base_url}"
+    worker_log = File.expand_path("backends/worker/tmp/worker.log", __dir__)
+    details = if File.file?(worker_log)
+      File.readlines(worker_log).last(200).join
+    else
+      "Worker startup log was not created: #{worker_log}\n"
+    end
+    abort "Server did not become ready at #{base_url} after #{ready_timeout}s.\n\nWorker startup log (#{worker_log}):\n#{details}"
   end
   sleep 0.1
 end
