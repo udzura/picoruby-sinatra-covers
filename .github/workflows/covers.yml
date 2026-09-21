@@ -64,7 +64,6 @@ jobs:
         with:
           repository: picoruby/picoruby
           path: picoruby
-          ref: a4d8eba5e2ce3710a2a5b265ccddaec2fcba71f2
           fetch-depth: 1
 
       - name: Check out PicoRuby Worker dependencies

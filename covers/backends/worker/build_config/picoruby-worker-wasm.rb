@@ -26,18 +26,7 @@ MRuby::CrossBuild.new("picoruby-worker-wasm") do |conf|
     conf.gem github: "udzura/picoruby-sinatra-covers", branch: "master"
   end
 
-  # Register Sinatra's dependency sources first, then optional local overrides.
-  %w[MRUBY_MUSTERMANN_GEM_DIR MRUBY_RACK_GEM_DIR].each do |environment|
-    if (gem_dir = ENV[environment])
-      conf.gem gemdir: File.expand_path(gem_dir)
-    end
-  end
-
-  if (gem_dir = ENV["PICORUBY_WORKER_WASM_GEM_DIR"])
-    conf.gem gemdir: File.expand_path(gem_dir)
-  else
-    conf.gem github: "udzura/picoruby-cloudflare-worker-wasm",
-             branch: "master",
-             checksum_hash: "b342a9a1952332cc8fa0e1c41eb4e458c3a8b0a9"
-  end
+  conf.gem github: "udzura/picoruby-cloudflare-worker-wasm",
+            branch: "master",
+            checksum_hash: "ebab3afc4b06cdb29508de453795de90349c4691"
 end
