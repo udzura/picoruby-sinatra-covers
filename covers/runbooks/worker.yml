@@ -4,7 +4,7 @@ vars:
   port: 8787
 steps:
   - exec:
-      command: ruby covers/backends/worker/start.rb
+      command: WORKER_PORT="{{ vars.port }}" ruby covers/backends/worker/start.rb
       background: true
       env:
         COVER_SCENARIO: "{{ vars.scenario }}"
