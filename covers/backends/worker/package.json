@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev"
+    "dev": "wrangler dev --port ${WORKER_PORT:-8787}"
   },
   "devDependencies": {
     "wrangler": "4.125.0"

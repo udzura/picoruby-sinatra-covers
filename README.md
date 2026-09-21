@@ -109,6 +109,10 @@ COVER_SCENARIO=errors rake covers:worker:run
 COVER_SCENARIO=json   rake covers:worker:run
 ```
 
+Worker covers choose an available local port for each run. To use a fixed port
+while debugging, set `WORKER_PORT` (for example, `WORKER_PORT=8788 rake
+covers:worker:run`); the backend also accepts `WORKER_PORT=8788 npm run dev`.
+
 `covers:worker:run` はruntimeを再ビルドしません。PicoRuby、mgem、Sinatra本体や
 build configを変更した場合は `covers:worker:runtime` を再実行してください。
 通常の `covers:worker` は毎回runtimeビルドを含みます。

@@ -1,5 +1,6 @@
 require "rake"
 require "fileutils"
+require "socket"
 require_relative "covers/lib/scenario_target"
 
 PROJECT_ROOT = File.expand_path(__dir__)
@@ -39,6 +40,15 @@ def prepare_mruby_regexp(root, mustermann_root)
   FileUtils.mkdir_p(File.dirname(destination))
   FileUtils.cp_r(source, destination)
   destination
+end
+
+def worker_port
+  return ENV.fetch("WORKER_PORT") if ENV.key?("WORKER_PORT")
+
+  server = TCPServer.new("127.0.0.1", 0)
+  server.addr[1]
+ensure
+  server&.close
 end
 
 desc "Build PicoRuby with Sinatra 4.2.1 and run the smoke test"
@@ -92,10 +102,12 @@ namespace :covers do
     desc "Run a Worker cover using the already-built runtime"
     task :run do
       scenario = selected_cover_scenario
+      port = worker_port
       sh "rake", "-f", File.join(PROJECT_ROOT, "covers", "backends", "worker", "Rakefile"), "check_runtime"
-      sh "runn", "run", "--scopes", "run:exec", "--verbose", "--debug-on-failure",
+      sh({ "WORKER_PORT" => port.to_s }, "runn", "run", "--scopes", "run:exec", "--verbose", "--debug-on-failure",
          "--var", "scenario:#{scenario}",
-         File.join(PROJECT_ROOT, "covers", "runbooks", "worker.yml")
+         "--var", "port:#{port}",
+         File.join(PROJECT_ROOT, "covers", "runbooks", "worker.yml"))
     end
   end
 end
