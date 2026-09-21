@@ -18,7 +18,7 @@ def verify_emscripten!
   output, status = Open3.capture2e("emcc", "--version")
   abort "emcc was not found. Activate emsdk #{expected} first." unless status.success?
 
-  actual = output[/\bemcc .*?\s(\d+\.\d+\.\d+)\s\(/, 1]
+  actual = output[/\bemcc .*?\s(\d+\.\d+\.\d+)/, 1]
   return if actual == expected
 
   abort "Emscripten #{expected} is required (found #{actual || "unknown"})."

@@ -35,6 +35,7 @@ worker_log(log, "backend_root=#{backend_root}")
 worker_log(log, "runtime=#{runtime} bytes=#{File.size(runtime)}")
 
 Dir.chdir(backend_root)
+puts "backend_root=#{backend_root}"
 worker_log(log, "compiling app=#{target.app_path}")
 unless system({ "COVER_SCENARIO" => target.name }, "rake", "-f", "Rakefile", "app")
   worker_log(log, "app compilation failed with exit status #{$?.exitstatus}")
