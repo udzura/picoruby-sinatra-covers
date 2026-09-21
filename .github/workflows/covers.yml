@@ -52,7 +52,6 @@ jobs:
     env:
       PICORUBY_ROOT: ${{ github.workspace }}/picoruby
       PICORUBY_SINATRA_COVERS_GEM_DIR: ${{ github.workspace }}
-      WORKER_DEBUG: ${{ runner.debug }}
 
     steps:
       - name: Check out Sinatra covers
@@ -109,6 +108,8 @@ jobs:
         run: rake covers:worker:runtime
 
       - name: Run PicoRuby Worker cover
+        env:
+          WORKER_DEBUG: ${{ runner.debug }}
         run: |
           env COVER_SCENARIO=basic  rake covers:worker:run
           env COVER_SCENARIO=errors rake covers:worker:run
