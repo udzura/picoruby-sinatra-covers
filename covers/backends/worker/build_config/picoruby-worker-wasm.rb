@@ -26,6 +26,8 @@ MRuby::CrossBuild.new("picoruby-worker-wasm") do |conf|
     conf.gem github: "udzura/picoruby-sinatra-covers", branch: "master"
   end
 
+  conf.gem gemdir: "#{ENV["PICORUBY_ROOT"]}/mrbgems/picoruby-mruby/lib/mruby/mrbgems/mruby-pack"
+
   conf.gem github: "udzura/picoruby-cloudflare-worker-wasm",
             branch: "master",
             checksum_hash: "ebab3afc4b06cdb29508de453795de90349c4691"
