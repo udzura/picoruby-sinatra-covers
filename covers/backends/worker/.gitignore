@@ -2,3 +2,4 @@ dist/
 .wrangler/
 .wrangler-dist/
 node_modules/
+tmp/

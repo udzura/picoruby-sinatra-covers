@@ -1,6 +1,7 @@
 # Cloudflare Workers supplies the server and request isolation. The initial
 # compatibility target intentionally excludes optional Sinatra middleware.
 Sinatra::Base.set :environment, :production
+Sinatra::Base.set :app_file, "(picoruby)"
 Sinatra::Base.set :sessions, false
 Sinatra::Base.set :session_secret, nil
 Sinatra::Base.set :logging, nil
@@ -14,6 +15,10 @@ Sinatra::Base.set :static, false
 Sinatra::Base.set :reload_templates, false
 
 class << Sinatra::Base
+  def app_file?
+    !!app_file
+  end
+
   private
 
   # Sinatra installs HostAuthorization independently of the protection flag.

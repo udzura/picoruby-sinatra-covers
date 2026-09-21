@@ -1,14 +1,16 @@
 desc: Cover Sinatra behavior on PicoRuby Cloudflare Workers
 vars:
   scenario: basic
+  port: 8787
+  worker_debug: "0"
 steps:
   - exec:
-      command: ruby covers/backends/worker/start.rb
+      command: WORKER_DEBUG="{{ vars.worker_debug }}" WORKER_PORT="{{ vars.port }}" ruby covers/backends/worker/start.rb
       background: true
       env:
         COVER_SCENARIO: "{{ vars.scenario }}"
   - include:
       path: verify.yml
       vars:
-        base_url: http://127.0.0.1:8787
+        base_url: "http://127.0.0.1:{{ vars.port }}"
         scenario: "{{ vars.scenario }}"

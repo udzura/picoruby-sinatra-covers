@@ -37,6 +37,7 @@ MRuby::Gem::Specification.new("picoruby-sinatra-covers") do |spec|
     mruby-hash-ext
     mruby-kernel-ext
     mruby-metaprog
+    mruby-pack
     mruby-method
     mruby-numeric-ext
     mruby-object-ext

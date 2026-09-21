@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev"
+    "dev": "if [ \"$WORKER_DEBUG\" = 1 ]; then wrangler dev --log-level debug --port \"${WORKER_PORT:-8787}\"; else wrangler dev --port \"${WORKER_PORT:-8787}\"; fi"
   },
   "devDependencies": {
     "wrangler": "4.125.0"

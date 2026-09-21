@@ -91,7 +91,7 @@ jobs:
       - name: Set up Emscripten
         uses: emscripten-core/setup-emsdk@v15
         with:
-          version: 5.0.7
+          version: 6.0.9
           actions-cache-folder: emsdk-cache
 
       - name: Install runn
@@ -108,6 +108,8 @@ jobs:
         run: rake covers:worker:runtime
 
       - name: Run PicoRuby Worker cover
+        env:
+          WORKER_DEBUG: ${{ runner.debug }}
         run: |
           env COVER_SCENARIO=basic  rake covers:worker:run
           env COVER_SCENARIO=errors rake covers:worker:run
