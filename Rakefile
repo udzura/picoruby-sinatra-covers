@@ -104,9 +104,12 @@ namespace :covers do
       scenario = selected_cover_scenario
       port = worker_port
       sh "rake", "-f", File.join(PROJECT_ROOT, "covers", "backends", "worker", "Rakefile"), "check_runtime"
-      sh({ "WORKER_PORT" => port.to_s }, "runn", "run", "--debug", "--scopes", "run:exec", "--verbose", "--debug-on-failure",
+      runn_options = ["run", "--scopes", "run:exec", "--verbose", "--debug-on-failure"]
+      runn_options.insert(1, "--debug") if ENV["WORKER_DEBUG"] == "1"
+      sh({ "WORKER_PORT" => port.to_s }, "runn", *runn_options,
          "--var", "scenario:#{scenario}",
          "--var", "port:#{port}",
+         "--var", "worker_debug:#{ENV.fetch("WORKER_DEBUG", "0")}",
          File.join(PROJECT_ROOT, "covers", "runbooks", "worker.yml"))
     end
   end

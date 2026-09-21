@@ -52,6 +52,7 @@ jobs:
     env:
       PICORUBY_ROOT: ${{ github.workspace }}/picoruby
       PICORUBY_SINATRA_COVERS_GEM_DIR: ${{ github.workspace }}
+      WORKER_DEBUG: ${{ runner.debug }}
 
     steps:
       - name: Check out Sinatra covers
