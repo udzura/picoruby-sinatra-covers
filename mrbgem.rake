@@ -20,10 +20,14 @@ MRuby::Gem::Specification.new("picoruby-sinatra-covers") do |spec|
 
   spec.add_dependency "mruby-rack", github: "udzura/mruby-rack", branch: "master"
   spec.add_dependency "mruby-mustermann", github: "udzura/mruby-mustermann", branch: "master"
-  spec.add_dependency "mruby-json",
-                      github: "mattn/mruby-json",
-                      branch: "master",
-                      checksum_hash: "f99d9428025469f2400f93c53b185f65f963e507"
+  if ENV["PICORUBY_USE_MRUBY_JSONRS"]
+    spec.add_dependency "mruby-jsonrs", github: "udzura/mruby-jsonrs", branch: "master"
+  else
+    spec.add_dependency "mruby-json",
+                        github: "mattn/mruby-json",
+                        branch: "master",
+                        checksum_hash: "f99d9428025469f2400f93c53b185f65f963e507"
+  end
 
   # PicoRuby keeps the mruby core gems in its VM submodule.
   mruby_gems = File.join(MRUBY_ROOT, "mrbgems", "picoruby-mruby", "lib", "mruby", "mrbgems")
