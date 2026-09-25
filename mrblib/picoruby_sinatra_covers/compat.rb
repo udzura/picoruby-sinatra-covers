@@ -3,7 +3,12 @@
 
 ENV = {} unless Object.const_defined?(:ENV)
 
-class LoadError < Exception
+unless Object.const_defined?(:LoadError)
+  class ScriptError < Exception
+  end
+
+  class LoadError < ScriptError
+  end
 end
 
 # Sinatra::Base#set emits tiny getter methods with class_eval(String). Keeping
